@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyStock AI - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .app {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .screen {
+            display: none;
+            height: 100%;
+            padding: 20px;
+        }
+        
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: #ffffff;
+            padding: 16px 20px;
+            border-bottom: 1px solid #E0E0E0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #007AFF;
+            cursor: pointer;
+        }
+        
+        .content {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .home-content {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .main-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            font-size: 18px;
+            color: #4a5568;
+            margin-bottom: 48px;
+            line-height: 1.5;
+        }
+        
+        .button {
+            display: block;
+            width: 100%;
+            padding: 20px 32px;
+            margin-bottom: 16px;
+            border: none;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .button:active {
+            transform: translateY(0);
+        }
+        
+        .scan-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .scan-button:hover {
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+        
+        .inventory-button {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
+        }
+        
+        .inventory-button:hover {
+            box-shadow: 0 8px 25px rgba(17, 153, 142, 0.6);
+        }
+        
+        .camera-content {
+            background: #000;
+            color: white;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .scan-area {
+            width: 300px;
+            height: 200px;
+            border: 3px solid #007AFF;
+            margin: 40px auto;
+            position: relative;
+        }
+        
+        .corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #007AFF;
+        }
+        
+        .corner.top-left { top: 0; left: 0; border-right: none; border-bottom: none; }
+        .corner.top-right { top: 0; right: 0; border-left: none; border-bottom: none; }
+        .corner.bottom-left { bottom: 0; left: 0; border-right: none; border-top: none; }
+        .corner.bottom-right { bottom: 0; right: 0; border-left: none; border-top: none; }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .label {
+            display: block;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #DDD;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .inventory-list {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+        
+        .product-item {
+            padding: 16px;
+            border-bottom: 1px solid #E0E0E0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .product-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .product-qty {
+            color: #007AFF;
+            font-weight: bold;
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+        }
+        
+        .duplicate-alert {
+            background: #FFF3CD;
+            border: 1px solid #FFEAA7;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        
+        .duplicate-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 8px;
+        }
+        
+        .duplicate-text {
+            font-size: 14px;
+            color: #856404;
+            margin-bottom: 12px;
+        }
+        
+        .duplicate-actions {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .duplicate-btn {
+            flex: 1;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .mark-duplicate {
+            background: #6C757D;
+            color: white;
+        }
+        
+        .continue-anyway {
+            background: #28A745;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Home Screen -->
+        <div id="home-screen" class="screen active">
+            <div class="header">
+                <div class="title">MyStock AI</div>
+            </div>
+            <div class="content">
+                <div class="home-content">
+                    <h1 class="main-title">Smart Receipt Scanner</h1>
+                    <p class="subtitle">Capture receipts instantly and keep track of your business expenses with AI-powered duplicate detection</p>
+                    
+                    <button class="button scan-button" onclick="showScreen('camera-screen')">
+                        📸 Scan Receipt
+                    </button>
+                    
+                    <button class="button inventory-button" onclick="showScreen('inventory-screen')">
+                        📊 View Expenses
+                    </button>
+                    
+                    <div class="inventory-list">
+                        <h3>Recent Receipts</h3>
+                        <div class="empty-state">No recent receipts scanned</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Camera Screen -->
+        <div id="camera-screen" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('home-screen')">← Back</button>
+                <div class="title">Scan Receipt</div>
+            </div>
+            <div class="content">
+                <div class="camera-content">
+                    <div class="scan-area">
+                        <div class="corner top-left"></div>
+                        <div class="corner top-right"></div>
+                        <div class="corner bottom-left"></div>
+                        <div class="corner bottom-right"></div>
+                    </div>
+                    <p>Position your receipt within the frame and click to capture</p>
+                    <input type="file" id="file-input" class="file-input" accept="image/*" onchange="processImage()">
+                    <button class="button scan-button" onclick="document.getElementById('file-input').click()">
+                        📸 Capture Receipt
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Review Screen -->
+        <div id="review-screen" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('camera-screen')">← Back</button>
+                <div class="title">Review Receipt</div>
+            </div>
+            <div class="content">
+                <div class="duplicate-alert" id="duplicate-alert" style="display: none;">
+                    <div class="duplicate-title">⚠️ Duplicate Receipt Detected</div>
+                    <div class="duplicate-text">This receipt appears similar to one you've already scanned. Would you like to continue anyway?</div>
+                    <div class="duplicate-actions">
+                        <button class="duplicate-btn mark-duplicate" onclick="markAsDuplicate()">Mark as Duplicate</button>
+                        <button class="duplicate-btn continue-anyway" onclick="continueAnyway()">Continue Anyway</button>
+                    </div>
+                </div>
+                
+                <div class="form">
+                    <h3>Receipt Details</h3>
+                    
+                    <div class="input-group">
+                        <label class="label">Business Name *</label>
+                        <input type="text" class="input" placeholder="Enter business name" id="vendor-input">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label class="label">Date *</label>
+                        <input type="text" class="input" placeholder="YYYY-MM-DD" id="date-input">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label class="label">Total Amount *</label>
+                        <input type="number" class="input" placeholder="0.00" id="total-input">
+                    </div>
+                    
+                    <button class="button scan-button" onclick="validateFields()">
+                        Verify Details
+                    </button>
+                    
+                    <button class="button inventory-button" onclick="saveInvoice()">
+                        Save Receipt
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Screen -->
+        <div id="inventory-screen" class="screen">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('home-screen')">← Back</button>
+                <div class="title">Expense Tracker</div>
+            </div>
+            <div class="content">
+                <div class="form">
+                    <input type="text" class="input" placeholder="Search receipts by business name or amount..." id="search-input">
+                </div>
+                
+                <div class="inventory-list">
+                    <h3>Recent Receipts (0 items)</h3>
+                    <div class="empty-state">No receipts scanned yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show selected screen
+            document.getElementById(screenId).classList.add('active');
+        }
+        
+        function processImage() {
+            const fileInput = document.getElementById('file-input');
+            if (fileInput.files.length > 0) {
+                // Simulate duplicate detection (30% chance)
+                if (Math.random() < 0.3) {
+                    document.getElementById('duplicate-alert').style.display = 'block';
+                }
+                showScreen('review-screen');
+            }
+        }
+        
+        function markAsDuplicate() {
+            document.getElementById('duplicate-alert').style.display = 'none';
+            alert('Marked as duplicate');
+        }
+        
+        function continueAnyway() {
+            document.getElementById('duplicate-alert').style.display = 'none';
+        }
+        
+        function validateFields() {
+            const vendor = document.getElementById('vendor-input').value;
+            const date = document.getElementById('date-input').value;
+            const total = document.getElementById('total-input').value;
+            
+            if (!vendor || !date || !total) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            alert('Validation successful! All fields look good.');
+        }
+        
+        function saveInvoice() {
+            const vendor = document.getElementById('vendor-input').value;
+            const date = document.getElementById('date-input').value;
+            const total = document.getElementById('total-input').value;
+            
+            if (!vendor || !date || !total) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            alert('Receipt saved successfully!');
+            showScreen('home-screen');
+        }
+    </script>
+</body>
+</html>
+
