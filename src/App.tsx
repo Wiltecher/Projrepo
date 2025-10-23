@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'react-native';
 import Toast from 'react-native-toast-message';
+
+import { supabase } from './src/lib/supabase';
 
 import { RootStackParamList } from './types';
 import HomeScreen from './screens/HomeScreen';
@@ -13,6 +15,22 @@ import InventoryScreen from './screens/InventoryScreen';
 const Stack = createStackNavigator<RootStackParamList>();
 
 const App: React.FC = () => {
+  const [session, setSession] = useState(null);
+
+  // ✅ Backend integration: subscribe to Supabase auth state
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth event:', event);
+        setSession(session);
+      }
+    );
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, []);
+
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
@@ -58,5 +76,10 @@ const App: React.FC = () => {
   );
 };
 
+useEffect(() => {
+  supabase.auth.onAuthStateChange((event, session) => {
+    // set user state
+  });
+}, []);
 export default App;
 
